@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <link rel="stylesheet" href="yt_summarizer.css">
+    <title>YouTube Video Summarizer</title>
+</head>
+<body>
+    <header>
+        <h1>YouTube Video Summarizer</h1>
+    </header>
+    <div class="container">
+        <div class="left">
+            <div class="input-section">
+                <h2>Enter YouTube Link</h2>
+                <div class="input-container">
+                    <input type="text" id="youtubeLink" placeholder="Enter YouTube link here">
+                    <button id="submitLink">Submit</button>
+                </div>
+            </div>
+            <div class="thumbnail-section">
+                <h2>Thumbnail</h2>
+                <div id="thumbnail"></div>
+            </div>
+        </div>
+        <div class="right">
+            <h2>Summary and Quiz</h2>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

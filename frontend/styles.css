@@ -1,0 +1,62 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('https://img.freepik.com/premium-vector/network-connection-background_23-2148899874.jpg'); /* URL of the background image */
+    background-color: #86dced; /* Fallback color */
+    background-size: cover; /* Ensure it covers the whole page */
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat; /* No repeating the image */
+    background-attachment: fixed; /* Fix the background */
+    height: 100vh; /* Ensure full height */
+}
+
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+h1 {
+    margin: 20px; /* Set margin to adjust the gap */
+    padding: 20px;
+    color: rgb(246, 246, 246);
+    background-color: rgba(98, 226, 255, 0.8); /* Light color with some transparency */
+}
+
+.chatbot-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chatbot-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20px; /* Increased margin */
+    padding: 60px; /* Increased padding */
+    background-color: #fcfcfc;
+    border: 2px solid #86eee7;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none; /* Removes underline from links */
+    color: black; /* Sets the text color */
+}
+
+.chatbot-option img {
+    max-width: 200px; /* or your desired size */
+    height: 200px;
+    object-fit: cover; /* This will ensure the aspect ratio is maintained without distortion */
+    margin-bottom: 40px; /* Adds space between the image and the text below it */
+}
+.chatbot-option span {
+    font-weight: bold;
+    font-size: 18px; /* Increased font size for visibility */
+}
+
+.chatbot-option:hover {
+    background-color: #f9f9f9;
+    transform: scale(1.05); /* Slightly enlarge options on hover */
+}

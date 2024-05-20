@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedBuddy Chat</title>
+    <link rel="stylesheet" href="medical_assistant.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome To 'Your MedBuddy'</h1>
+    </header>
+    <div class="container">
+      <div class="chat-container">
+          <div class="chat-output" id="chatOutput"></div>
+      </div>
+      <div class="chat-input-area">
+          <input type="text" id="questionInput" class="chat-input" placeholder="Type your question here...">
+          <button onclick="askQuestion()" class="send-button">Send</button>
+      </div>
+  </div>
+
+    <script src="medical_assistant.js"></script>
+</body>
+</html>
