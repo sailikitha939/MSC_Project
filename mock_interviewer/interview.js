@@ -14,10 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
         <span></span><span></span><span></span>
     `;
 
-    // Configure AWS SDK
-    AWS.config.region = 'your-region'; // Region
-    AWS.config.credentials = new AWS.Credentials('your-access-key-id', 'your-secret-access-key');
-
     // Create a Polly client
     const polly = new AWS.Polly();
 
