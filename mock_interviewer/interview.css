@@ -31,12 +31,14 @@ header h3 {
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 100%;
 }
 
 .left-panel {
     background: #f9f9f9;
     border-right: 1px solid #ccc;
     padding: 20px;
+    overflow-y: auto;
 }
 
 .right-panel {
@@ -46,17 +48,18 @@ header h3 {
 }
 
 .upper-panel {
-    flex: 0.15;
+    flex: 0.2;
     overflow-y: auto;
     padding: 20px;
     border-bottom: 1px solid #ccc;
 }
 
 .bottom-panel {
-    flex: 0.9;
+    flex: 1;
     display: flex;
     flex-direction: column;
     padding: 10px;
+    overflow: hidden; /* Prevent the footer from covering the chat window */
 }
 
 .form-container {
@@ -174,6 +177,8 @@ button[type="button"] {
     display: flex;
     flex-direction: column;
     flex: 1;
+    height: 100%;
+    overflow: hidden;
 }
 
 .chat-header {
@@ -190,7 +195,7 @@ button[type="button"] {
     overflow-y: auto;
     background: #e9ede9;
     border: 1px solid #ccc;
-    border-radius: 0 0 10px 10px;
+    border-radius: 10px;
 }
 
 .message {
@@ -253,16 +258,6 @@ input[type="text"] {
     background-color: #064C43;
 }
 
-.record-button {
-    padding: 10px 20px;
-    border: none;
-    background: #007bff;
-    color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: 5px;
-}
-
 .typing-indicator-bubble {
     display: flex;
     justify-content: flex-start;
@@ -300,4 +295,17 @@ footer {
     padding: 5px 0;
     position: relative;
     bottom: 0;
+}
+.send-button, .record-button {
+    padding: 10px 20px;
+    border: none;
+    background: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.send-button:active, .record-button:active {
+    background-color: #064C43;
 }

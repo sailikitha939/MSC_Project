@@ -1,142 +1,193 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const interviewForm = document.getElementById('interviewForm');
-    const resumeInput = document.getElementById('resumeInput');
-    const fileName = document.getElementById('fileName');
-    const messageInput = document.getElementById('messageInput');
-    const messages = document.getElementById('messages');
-    const startRecordingButton = document.getElementById('startRecording');
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("interviewForm");
+    const fileInput = document.getElementById("resumeInput");
+    const fileNameDisplay = document.getElementById("fileName");
+    const messageInput = document.getElementById("messageInput");
+    const messagesContainer = document.getElementById("messages");
+    const sendButton = document.querySelector(".send-button");
+    const generateFeedbackButton = document.getElementById("generateFeedback");
 
-    let mediaRecorder;
-    let audioChunks = [];
+    // Typing indicator element
+    const typingIndicator = document.createElement("div");
+    typingIndicator.classList.add("typing-indicator");
+    typingIndicator.innerHTML = `
+        <span></span><span></span><span></span>
+    `;
 
-    // Display the selected file name
-    resumeInput.addEventListener('change', function() {
-        const file = resumeInput.files[0];
-        if (file) {
-            fileName.textContent = file.name;
+    // Configure AWS SDK
+    AWS.config.region = 'eu-west-2'; // Region
+    AWS.config.credentials = new AWS.Credentials('AKIA2UC3A6NSCHWWMHOK', 'DXHD5XDBoJ/CmTlB6F0AE7M+CJ5A14yqZiKq5iSr');
+
+    // Create a Polly client
+    const polly = new AWS.Polly();
+
+    // Display selected file name
+    fileInput.addEventListener("change", function () {
+        const allowedExtensions = ['pdf', 'docx', 'txt'];
+        const fileName = fileInput.files[0].name;
+        const fileExtension = fileName.split('.').pop().toLowerCase();
+
+        if (allowedExtensions.includes(fileExtension)) {
+            fileNameDisplay.textContent = fileName;
+        } else {
+            fileNameDisplay.textContent = "";
+            alert("Only PDF, DOCX, and TXT files are allowed.");
+            fileInput.value = ""; // Clear the input
         }
     });
 
-    // Form submission handler
-    interviewForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        const formData = new FormData(interviewForm);
+    // Handle form submission
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append("name", document.getElementById("name").value);
+        formData.append("role", document.getElementById("role").value);
+        formData.append("job_description", document.getElementById("jobDescription").value);
+        formData.append("file", fileInput.files[0]);
 
-        alert('Form submitted successfully!');
+        console.log("Submitting form with the following data:");
+        for (let pair of formData.entries()) {
+            console.log(`${pair[0]}: ${pair[1]}`);
+        }
+
+        await uploadFile(formData);
     });
 
-    // Send message function
-    function sendMessage() {
-        const message = messageInput.value.trim();
-        if (message) {
-            addMessageToChat('user-message', message);
-            messageInput.value = '';
-            askQuestion(message);
+    async function uploadFile(formData) {
+        try {
+            const response = await fetch("http://127.0.0.1:8000/upload", {
+                method: "POST",
+                body: formData,
+            });
+    
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+            }
+    
+            const result = await response.json();
+            console.log("Upload result:", result);
+    
+            // Check if the response contains the expected data
+            if (result && result.filename) {
+                alert("Resume Submitted Successfully, Let's Start the Interview");
+            } else {
+                throw new Error("Unexpected response format");
+            }
+        } catch (error) {
+            console.error("Error uploading file:", error);
         }
     }
+    
 
-    // Add message to chat window
-    function addMessageToChat(senderClass, message) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('chat-message', senderClass);
+    function displayMessage(message, sender) {
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message", sender);
         messageElement.textContent = message;
-        messages.appendChild(messageElement);
-        messages.scrollTop = messages.scrollHeight; // Scroll to the bottom
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
 
-    // Ask question function
-    function askQuestion(question) {
-        appendTypingIndicator();
-        fetch('https://api.example.com/interview', { // Replace with your API endpoint
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ question }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            removeTypingIndicator();
-            addMessageToChat('assistant-message', data.answer);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while fetching the answer.');
-            removeTypingIndicator();
+    function showTypingIndicator() {
+        messagesContainer.appendChild(typingIndicator);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        if (typingIndicator.parentNode) {
+            messagesContainer.removeChild(typingIndicator);
+        }
+    }
+
+    async function sendMessage() {
+        const message = messageInput.value;
+        if (!message) return;
+
+        displayMessage(message, "user-message");
+        messageInput.value = "";
+
+        showTypingIndicator();
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/submit-message", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ message }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+            }
+
+            const result = await response.json();
+            hideTypingIndicator();
+            displayMessage(result.message, "assistant-message");
+            synthesizeSpeech(result.message);
+        } catch (error) {
+            hideTypingIndicator();
+            console.error("Error sending message:", error);
+        }
+    }
+
+    async function generateFeedback() {
+        showTypingIndicator();
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/generate-feedback", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+            }
+
+            const result = await response.json();
+            hideTypingIndicator();
+            displayMessage(result.feedback, "assistant-message");
+            synthesizeSpeech(result.feedback);
+        } catch (error) {
+            hideTypingIndicator();
+            console.error("Error generating feedback:", error);
+        }
+    }
+
+    function synthesizeSpeech(text) {
+        const params = {
+            OutputFormat: "mp3",
+            Text: text,
+            VoiceId: "Joanna" // Choose a Polly voice
+        };
+
+        polly.synthesizeSpeech(params, function (err, data) {
+            if (err) {
+                console.log(err, err.stack);
+            } else {
+                const uInt8Array = new Uint8Array(data.AudioStream);
+                const arrayBuffer = uInt8Array.buffer;
+                const blob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+                const url = URL.createObjectURL(blob);
+                const audio = new Audio(url);
+                audio.play();
+            }
         });
     }
 
-    // Append typing indicator
-    function appendTypingIndicator() {
-        const typingIndicator = document.createElement('div');
-        typingIndicator.classList.add('typing-indicator-bubble');
-        typingIndicator.setAttribute('id', 'typingIndicator');
-        typingIndicator.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
-        messages.appendChild(typingIndicator);
-        messages.scrollTop = messages.scrollHeight;
-    }
+    sendButton.addEventListener("click", sendMessage);
 
-    // Remove typing indicator
-    function removeTypingIndicator() {
-        const typingIndicator = document.getElementById('typingIndicator');
-        if (typingIndicator) {
-            messages.removeChild(typingIndicator);
-        }
-    }
-
-    // Start recording function
-    startRecordingButton.addEventListener('click', function() {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-            startRecordingButton.textContent = 'Record';
-        } else {
-            startRecording();
-            startRecordingButton.textContent = 'Stop Recording';
-        }
-    });
-
-    // Start recording audio
-    function startRecording() {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(stream => {
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.start();
-                audioChunks = [];
-
-                mediaRecorder.addEventListener('dataavailable', event => {
-                    audioChunks.push(event.data);
-                });
-
-                mediaRecorder.addEventListener('stop', () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-                });
-            }).catch(error => {
-                console.error('Error accessing microphone:', error);
-            });
-    }
-
-    // Attach event listeners to buttons
-    document.getElementById('generateFeedback').addEventListener('click', function() {
-        // Generate feedback function
-        alert('Feedback generated!');
-    });
-
-    document.getElementById('goHome').addEventListener('click', function() {
-        // Go back to home function
-        window.location.href = 'index.html';
-    });
-
-    // Attach send message function to send button
-    document.querySelector('.send-button').addEventListener('click', sendMessage);
-
-    // Attach enter key event to message input
-    messageInput.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
+    // Trigger send message on pressing Enter key
+    messageInput.addEventListener("keypress", function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
             sendMessage();
         }
     });
+
+    generateFeedbackButton.addEventListener("click", generateFeedback);
 });
